@@ -35,6 +35,10 @@ class Mongo {
 
         return yield Url.save();
     }
+
+    static *find( hash ) {
+        return yield model.find( {hash: hash} );
+    }
 }
 
 module.exports = Mongo;

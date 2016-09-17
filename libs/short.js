@@ -11,9 +11,19 @@ const mongo    = new Mongo();
 const duid     = new Duid.init();
 
 class Short {
+    *index() {
+        this.body = {
+            result : "Welcome!",
+            fork_me: "https://github.com/fyibmsd/biturl.git"
+        }
+    }
+
     *redirect() {
         let hash = this.params.hash;
         let url  = yield redis.get( hash );
+
+        if (!iterator.has( url ))
+            iterator.set( url, hash );
 
         this.response.status = 301;
         return this.response.redirect( url );
@@ -36,7 +46,8 @@ class Short {
         }
 
         this.body = {
-            url: `${config.host}${hash}`
+            status   : 0,
+            short_url: `${config.host}${hash}`
         };
     }
 
