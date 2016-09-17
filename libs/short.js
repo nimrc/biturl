@@ -22,6 +22,9 @@ class Short {
         let hash = this.params.hash;
         let url  = yield redis.get( hash );
 
+        if (url == 'undefined' || url == undefined)
+            return this.response.redirect( '/' );
+
         if (!iterator.has( url ))
             iterator.set( url, hash );
 

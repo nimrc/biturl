@@ -1,5 +1,6 @@
 'use strict';
 
+const bluebird = require( 'bluebird' );
 const mongoose = require( 'mongoose' );
 const config   = require( '../config/mongo' );
 const schema   = new mongoose.Schema( {
@@ -19,6 +20,8 @@ const schema   = new mongoose.Schema( {
     date: Date
 } );
 const model    = mongoose.model( config.table, schema );
+
+mongoose.Promise = bluebird;
 
 class Mongo {
     constructor() {

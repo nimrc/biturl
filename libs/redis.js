@@ -28,7 +28,7 @@ class Redis {
             let data = yield Mongo.find( hash );
             url      = data.url;
 
-            if (url !== null)
+            if (url != 'undefined' && url != undefined)
                 yield this.set( url, hash );
         }
 
