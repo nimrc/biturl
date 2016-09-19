@@ -41,5 +41,4 @@ class Redis {
     }
 }
 
-module
-    .exports = Redis;
+module.exports = Redis;

@@ -12,7 +12,7 @@
 
 Docs
 
-- `[POST]`http://bitm.pro/generate
+- `[POST]`https://bitm.pro/generate
   - url 原链接
 
 ---
