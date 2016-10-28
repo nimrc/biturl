@@ -12,7 +12,8 @@
     "koa-response-time": "^1.0.2",
     "koa-router": "^5.4.0",
     "redis": "^2.6.2",
-    "short-duid": "^1.4.3"
+    "short-duid": "^1.4.3",
+    "sqlite3": "^3.1.8"
   },
   "devDependencies": {
     "mocha": "^3.0.2"
