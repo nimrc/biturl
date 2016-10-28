@@ -2,7 +2,7 @@
 
 const bluebird = require( 'bluebird' );
 const mongoose = require( 'mongoose' );
-const config   = require( '../config/mongo' );
+const config   = require( '../config/db' );
 const schema   = new mongoose.Schema( {
     _id : {
         type : Number,

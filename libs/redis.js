@@ -1,6 +1,7 @@
 'use strict';
 
-const Mongo    = require( './mongo' );
+const Sqlite   = require( '../libs/sqlite' );
+const db       = new Sqlite();
 const bluebird = require( 'bluebird' );
 const redis    = require( 'redis' );
 const config   = require( '../config/redis' );
@@ -25,8 +26,9 @@ class Redis {
         let url = yield this.client.hget( queue, hash );
 
         if (url === null) {
-            let data = yield Mongo.find( hash );
-            url      = data.url;
+            let data = db.find( hash );
+
+            url = data.url;
 
             if (url != 'undefined' && url != undefined)
                 yield this.set( url, hash );

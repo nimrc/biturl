@@ -3,11 +3,12 @@
 const Hashmap  = require( 'hashmap' );
 const Duid     = require( 'short-duid' );
 const Redis    = require( './redis' );
-const Mongo    = require( './mongo' );
+const Sqlite   = require( './sqlite' );
+const db       = new Sqlite();
 const config   = require( '../config/custom' );
+const util     = require( 'util' );
 const iterator = new Hashmap();
 const redis    = new Redis();
-const mongo    = new Mongo();
 const duid     = new Duid.init();
 
 class Short {
@@ -20,20 +21,41 @@ class Short {
 
     *redirect() {
         let hash = this.params.hash;
-        let url  = yield redis.get( hash );
+        let url  = iterator.get( hash );
 
-        if (url == 'undefined' || url == undefined)
+        if (util.isUndefined( url ))
+            url = yield redis.get( hash );
+
+        if (util.isUndefined( url )) {
+            let ret = yield db.find( hash );
+            if (!util.isUndefined( ret )) {
+                url = ret.url;
+                yield redis.set( url, hash );
+            }
+        }
+
+        if (util.isUndefined( url ))
             return this.response.redirect( '/' );
 
-        if (!iterator.has( url ))
-            iterator.set( url, hash );
+        if (!iterator.has( hash ))
+            iterator.set( hash, url );
 
         this.response.status = 301;
         return this.response.redirect( url );
     }
 
     *generate() {
+        if (util.isUndefined( this.request.body ) || util.isUndefined( this.request.body.url )) {
+            this.body = {
+                status : 400,
+                message: "Please check your params!"
+            };
+
+            return this.body;
+        }
+
         let url = this.request.body.url;
+
         let id, hash;
 
         if (iterator.has( url )) {
@@ -43,9 +65,8 @@ class Short {
             hash = Short.hash( id );
 
             iterator.set( url, hash );
-
             yield redis.set( url, hash );
-            yield mongo.create( id, url, hash );
+            db.save( url, hash );
         }
 
         this.body = {
