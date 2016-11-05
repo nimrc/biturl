@@ -5,7 +5,7 @@
 基于:
 - nodejs v4.5
 - redis
-- mongodb
+- sqlite
 
 
 ---
