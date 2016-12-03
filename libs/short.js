@@ -16,26 +16,36 @@ class Short {
         this.body = {
             result : "Welcome!",
             fork_me: "https://github.com/fyibmsd/biturl.git"
-        }
+        };
     }
 
     *redirect() {
         let hash = this.params.hash;
         let url  = iterator.get( hash );
 
-        if (util.isUndefined( url ))
+        if (util.isUndefined( url )) {
+            logger.info( `search hash of ${hash} from cache` );
+
             url = yield redis.get( hash );
+        }
 
         if (util.isUndefined( url )) {
+            logger.warn( `cache of ${hash} not hit, search from db` );
+
             let ret = yield db.find( hash );
             if (!util.isUndefined( ret )) {
+                logger.info( `rebuild cache of ${hash} with link: ${ret.url}` );
+
                 url = ret.url;
                 yield redis.set( url, hash );
             }
         }
 
-        if (util.isUndefined( url ))
+        if (util.isUndefined( url )) {
+            logger.warn( `hash ${hash} does not exist in db, redirect to index` );
+
             return this.response.redirect( '/' );
+        }
 
         if (!iterator.has( hash ))
             iterator.set( hash, url );
@@ -46,6 +56,8 @@ class Short {
 
     *generate() {
         if (util.isUndefined( this.request.body ) || util.isUndefined( this.request.body.url )) {
+            this.response.status = 400;
+
             this.body = {
                 status : 400,
                 message: "Please check your params!"
@@ -64,7 +76,11 @@ class Short {
             id   = yield redis.getCode();
             hash = Short.hash( id );
 
+            logger.info( `generate new hash ${hash} for link ${url}` );
+
             iterator.set( url, hash );
+            if (!iterator.has( hash )) iterator.set( hash, url );
+
             yield redis.set( url, hash );
             db.save( url, hash );
         }
@@ -75,7 +91,7 @@ class Short {
         };
     }
 
-    static hash( id ) {
+    static hash(id) {
         return duid.hashidEncode( [id] );
     }
 }
