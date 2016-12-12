@@ -1,0 +1,8 @@
+biturl:
+    image: biturl
+    ports:
+        - "4000"
+    links:
+        - redis
+redis:
+    image: redis
