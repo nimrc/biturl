@@ -8,7 +8,7 @@ RUN apt-get install curl g++ -y
 
 RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
 
-RUN apt-get install nodejs redis -y
+RUN apt-get install nodejs -y
 
 WORKDIR /var/www/biturl
 
