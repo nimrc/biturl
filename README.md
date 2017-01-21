@@ -3,7 +3,7 @@
 ---
 
 基于:
-- nodejs v4.5
+- nodejs v4+
 - redis
 - sqlite
 

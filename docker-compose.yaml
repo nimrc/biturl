@@ -1,8 +1,11 @@
 biturl:
     image: biturl
     ports:
-        - "4000"
+        - "4000:4000"
     links:
         - redis
+    environment:
+        REDIS_HOST: 172.17.0.2
+        REDIS_PORT: 6379
 redis:
     image: redis

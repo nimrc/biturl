@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-    "host"   : "127.0.0.1",
-    "port"   : 6379,
-    "auth"   : "",
+    "host"   : process.env.REDIS_HOST || "127.0.0.1",
+    "port"   : process.env.REDIS_PORT || 6379,
+    "auth"   : process.env.REDIS_AUTH || "",
     "options": {}
 };
