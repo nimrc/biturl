@@ -1,45 +1,42 @@
 'use strict';
 
 const Sqlite   = require( '../libs/sqlite' );
+const util     = require( 'util' );
 const db       = new Sqlite();
 const bluebird = require( 'bluebird' );
 const redis    = require( 'redis' );
 const config   = require( '../config/redis' );
+const client   = redis.createClient( config.port, config.host, config.options );
+client.incr    = bluebird.promisify( client.incr );
+client.hget    = bluebird.promisify( client.hget );
+client.hset    = bluebird.promisify( client.hset );
 const queue    = 'shorturl';
 
+if (config.auth !== "")
+    client.auth( config.auth, (err, result) => console.log( "redis: ", err, result ) );
+
 class Redis {
-    constructor() {
-        this.client      = redis.createClient( config.port, config.host, config.options );
-        this.client.incr = bluebird.promisify( this.client.incr );
-        this.client.hget = bluebird.promisify( this.client.hget );
-        this.client.hset = bluebird.promisify( this.client.hset );
 
-        if (typeof config.auth == 'string')
-            this.client.auth( config.auth, ( err, result ) => console.log( "redis: ", err, result ) )
+    static async getCode() {
+        return await client.incr( 'short' );
     }
 
-    *getCode() {
-        return yield this.client.incr( 'short' );
-    }
-
-    *get( hash ) {
-        let url = yield this.client.hget( queue, hash );
+    static async get(hash) {
+        let url = await client.hget( queue, hash );
 
         if (url === null) {
             let data = db.find( hash );
 
             url = data.url;
 
-            if (url != 'undefined' && url != undefined)
-                yield this.set( url, hash );
+            if (!util.isUndefined( url )) await Redis.set( url, hash );
         }
 
         return url;
     }
 
-
-    *set( url, hash ) {
-        return yield this.client.hset( queue, hash, url );
+    static async set(url, hash) {
+        return await client.hset( queue, hash, url );
     }
 }
 

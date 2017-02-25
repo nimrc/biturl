@@ -2,42 +2,40 @@
 
 const Hashmap  = require( 'hashmap' );
 const Duid     = require( 'short-duid' );
-const Redis    = require( './redis' );
-const Sqlite   = require( './sqlite' );
-const db       = new Sqlite();
+const redis    = require( './redis' );
+const db       = require( './sqlite' );
 const config   = require( '../config/custom' );
 const util     = require( 'util' );
 const iterator = new Hashmap();
-const redis    = new Redis();
 const duid     = new Duid.init();
 
 class Short {
-    *index() {
-        this.body = {
+    static async index(ctx, next) {
+        return ctx.body = {
             result : "Welcome!",
             fork_me: "https://github.com/fyibmsd/biturl.git"
         };
     }
 
-    *redirect() {
-        let hash = this.params.hash;
+    static async redirect(ctx, next) {
+        let hash = ctx.params.hash;
         let url  = iterator.get( hash );
 
         if (util.isUndefined( url )) {
             logger.info( `search hash of ${hash} from cache` );
 
-            url = yield redis.get( hash );
+            url = await redis.get( hash );
         }
 
         if (util.isUndefined( url )) {
             logger.warn( `cache of ${hash} not hit, search from db` );
 
-            let ret = yield db.find( hash );
+            let ret = await db.find( hash );
             if (!util.isUndefined( ret )) {
                 logger.info( `rebuild cache of ${hash} with link: ${ret.url}` );
 
                 url = ret.url;
-                yield redis.set( url, hash );
+                await redis.set( url, hash );
             }
         }
 
@@ -50,44 +48,42 @@ class Short {
         if (!iterator.has( hash ))
             iterator.set( hash, url );
 
-        this.response.status = 301;
-        return this.response.redirect( url );
+        return ctx.response.redirect( url );
     }
 
-    *generate() {
-        if (util.isUndefined( this.request.body ) || util.isUndefined( this.request.body.url )) {
-            this.response.status = 400;
+    static async generate(ctx, next) {
+        if (util.isUndefined( ctx.request.body ) || util.isUndefined( ctx.request.body.url )) {
+            ctx.response.status = 400;
 
-            this.body = {
+            return ctx.body = {
                 status : 400,
                 message: "Please check your params!"
             };
-
-            return this.body;
         }
 
-        let url = this.request.body.url;
-
+        let url = ctx.request.body.url;
         let id, hash;
 
         if (iterator.has( url )) {
             hash = iterator.get( url );
         } else {
-            id   = yield redis.getCode();
+            id   = await redis.getCode();
             hash = Short.hash( id );
 
             logger.info( `generate new hash ${hash} for link ${url}` );
 
             iterator.set( url, hash );
-            if (!iterator.has( hash )) iterator.set( hash, url );
 
-            yield redis.set( url, hash );
+            if (!iterator.has( hash ))
+                iterator.set( hash, url );
+
+            await redis.set( url, hash );
             db.save( url, hash );
         }
 
-        this.body = {
+        return ctx.body = {
             status   : 0,
-            short_url: `${config.host}${hash}`
+            short_url: `${config.host}/${hash}`
         };
     }
 
