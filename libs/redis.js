@@ -26,7 +26,8 @@ class Redis {
         if (url === null) {
             let data = await db.find( hash );
 
-            if (!util.isUndefined( data.url )) await Redis.set( data.url, hash );
+            if (!util.isUndefined( data ) && !util.isUndefined( data.url ))
+                await Redis.set( data.url, hash );
         }
 
         return url;
