@@ -39,10 +39,10 @@ class Short {
             }
         }
 
-        if (util.isUndefined( url )) {
+        if (util.isNullOrUndefined( url )) {
             logger.warn( `hash ${hash} does not exist in db, redirect to index` );
 
-            return this.response.redirect( '/' );
+            return ctx.response.redirect( '/' );
         }
 
         if (!iterator.has( hash ))
