@@ -1,8 +1,7 @@
 'use strict';
 
-const Sqlite   = require( '../libs/sqlite' );
 const util     = require( 'util' );
-const db       = new Sqlite();
+const db       = require( '../libs/sqlite' );
 const bluebird = require( 'bluebird' );
 const redis    = require( 'redis' );
 const config   = require( '../config/redis' );
@@ -25,7 +24,7 @@ class Redis {
         let url = await client.hget( queue, hash );
 
         if (url === null) {
-            let data = db.find( hash );
+            let data = await db.find( hash );
 
             url = data.url;
 
